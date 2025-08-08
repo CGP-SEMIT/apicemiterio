@@ -13,7 +13,7 @@ module.exports = class UserController {
 
   //////////////////////////////////// Método para registrar um novo usuário///////////////////////////////////////////////////////////////
   static async register(req, res) {
-    const { name, email, phone, password, confirmpassword } = req.body; // Desestrutura dados enviados pelo cliente
+    const { name, email, phone, password, confirmpassword, cpf } = req.body; // Desestrutura dados enviados pelo cliente
 
     // Verifica se o corpo da requisição existe
     if (!req.body) {
@@ -22,6 +22,7 @@ module.exports = class UserController {
 
     // Validações dos campos obrigatórios
     if (!name) return res.status(422).json({ message: 'O nome é obrigatório' });
+    if (!cpf) return res.status(422).json({ message: 'O CPF é obrigatório' });
     if (!email) return res.status(422).json({ message: 'O email é obrigatório' });
     if (!phone) return res.status(422).json({ message: 'O phone é obrigatório' });
     if (!password) return res.status(422).json({ message: 'A senha é obrigatória' });
@@ -45,6 +46,7 @@ module.exports = class UserController {
     // Cria um novo objeto User com os dados e a senha criptografada
     const user = new User({
       name: name,
+      cpf: cpf,
       email: email,
       phone: phone,
       password: passwordHash
@@ -183,7 +185,7 @@ module.exports = class UserController {
     }
 
     // Desestrutura os dados enviados no corpo da requisição
-    const { name, email, phone, password, confirmpassword } = req.body;
+    const { name, email, phone, password, confirmpassword, cpf } = req.body;
 
     
 
@@ -218,6 +220,11 @@ module.exports = class UserController {
       return res.status(422).json({ message: 'O telefone é obrigatório' });
     }
 
+    // Validação: CPF é obrigatório
+    if (!cpf) {
+      return res.status(422).json({ message: 'O CPF é obrigatório' });
+    }
+
     // Validação: senha é obrigatória
     if (!password) {
       return res.status(422).json({ message: 'A senha é obrigatória' });
@@ -233,6 +240,7 @@ module.exports = class UserController {
     user.name = name;
     user.email = email;
     user.phone = phone;
+    user.cpf = cpf;
 
     // Gera o hash da nova senha
     const salt = await bcrypt.genSalt(12);
