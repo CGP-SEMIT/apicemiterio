@@ -9,7 +9,7 @@ import MeusSepultados from './components/pages/Sepultado/MeusSepultados'
 import AddSepultado from  './components/pages/Sepultado/addSepultado'
 import EditSepultado from  './components/pages/Sepultado/EditSepultado'
 import SepultadoDetails from  './components/pages/Sepultado/SepultadosDetails'
-
+import SearchResults from './components/pages/Sepultado/SearchResults'; // Importar SearchResults
 
 /*components*/
 import Navbar from './components/layout/Navbar'
@@ -37,6 +37,7 @@ function App() {
           <Route path="/sepultados/add" element={<AddSepultado />} />
          <Route path="/sepultados/edit/:id" element={<EditSepultado />} />
               <Route path="/sepultados/:id" element={<SepultadoDetails />} />
+              <Route path="/sepultados/pesquisa" element={<SearchResults />} /> {/* Adicionar rota de pesquisa */}
                 
         <Route path="/" element={<Home />} />
         

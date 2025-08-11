@@ -1,67 +1,414 @@
- .navbar{
-    display: flex;
-    justify-content: space-between;
-    padding: 1em 1.5em;
-    background-color: #075b76;
-    color: #fafcff;
+/* Navbar.module.css - Versão final com highlight e acessibilidade */
 
-  
- } 
+/* Estilos existentes da navbar */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: #2c3e50;
+  color: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  position: relative;
+  z-index: 1000;
+}
 
- .navbar_logo{
-    display: flex ;
-    align-items:center;
- }
+.navbar_logo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
 
- .navbar_logo h1 {
-  font-size: 2rem;
+.navbar_logo img {
+  height: 40px;
+  width: auto;
+}
+
+.navbar_logo h1 {
+  font-size: 1.5rem;
   margin: 0;
-
-   font-family: 'Cinzel', serif;
-  font-size: 36px;
-    text-align: center;
-}
- h2 {
-   font-family: 'Cinzel', serif;
-    margin-top: 30px;
-    margin-bottom: 20px;
-    color: #075b76;
-      font-size: 30px;
-  font-size: 36px;
-    text-align: center;
+  color: white;
 }
 
+.navbar ul {
+  display: flex;
+  list-style: none;
+  gap: 1.5rem;
+  margin: 0;
+  padding: 0;
+  align-items: center;
+}
 
- .navbar_logo img{
-    width: 80px;
-    margin-right: 0.8em;
- }
+.navbar ul li {
+  cursor: pointer;
+}
 
- .navbar ul {
-    margin-right: 2%;
-    display: flex;
-    align-items: center;
-    list-style: none;
- }
+.navbar ul li a {
+  color: white;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
 
- .navbar li,
- .navbar a{
+.navbar ul li a:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
 
-    font-family: 'Cinzel', serif;
-    text-decoration: none;
-    color: #fafcff;
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.5s;
-    padding: 0.5em 0.8em;
-    border-radius: 5px;
- }
- .navbar li:hover{
-    background-color: #eeeef0;
-    color: #075b76;
- }
+/* Container de pesquisa com posição relativa para sugestões */
+.search_container {
+  flex: 1;
+  max-width: 400px;
+  margin: 0 2rem;
+  position: relative;
+}
 
- .navbar li:hover > a{
-     color:#075b76;
-   
- }
+.search_form {
+  display: flex;
+  align-items: center;
+  background-color: white;
+  border-radius: 25px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: box-shadow 0.3s ease;
+}
+
+.search_form:focus-within {
+  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+}
+
+.search_input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: none;
+  outline: none;
+  font-size: 1rem;
+  background-color: transparent;
+  color: #333;
+}
+
+.search_input::placeholder {
+  color: #666;
+}
+
+.search_button {
+  padding: 0.75rem 1rem;
+  border: none;
+  background-color: #3498db;
+  color: white;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: background-color 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 50px;
+}
+
+.search_button:hover:not(:disabled) {
+  background-color: #2980b9;
+}
+
+.search_button:disabled {
+  background-color: #bdc3c7;
+  cursor: not-allowed;
+}
+
+.search_button:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.5);
+  outline-offset: 2px;
+}
+
+/* Container de sugestões */
+.suggestions_container {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: white;
+  border-radius: 0 0 12px 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  border: 1px solid #e1e8ed;
+  border-top: none;
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 1001;
+}
+
+/* Item de sugestão */
+.suggestion_item {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background-color 0.2s ease;
+}
+
+.suggestion_item:hover,
+.suggestion_item:focus {
+  background-color: #f8f9fa;
+  outline: none;
+}
+
+.suggestion_item:last-child {
+  border-bottom: none;
+}
+
+.suggestion_content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.suggestion_name {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 0.95rem;
+  line-height: 1.3;
+}
+
+.suggestion_details {
+  font-size: 0.8rem;
+  color: #666;
+  line-height: 1.3;
+}
+
+/* Highlight para termos de pesquisa */
+.highlight {
+  background-color: #fff3cd;
+  color: #856404;
+  padding: 0.1em 0.2em;
+  border-radius: 3px;
+  font-weight: 600;
+}
+
+/* Botão "Ver todos os resultados" */
+.suggestion_see_all {
+  padding: 0.75rem 1rem;
+  background-color: #f8f9fa;
+  color: #3498db;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: center;
+  border-top: 1px solid #e1e8ed;
+  transition: background-color 0.2s ease;
+}
+
+.suggestion_see_all:hover,
+.suggestion_see_all:focus {
+  background-color: #e9ecef;
+  outline: none;
+}
+
+/* Mensagem quando não há resultados */
+.suggestion_no_results {
+  padding: 1rem;
+  text-align: center;
+  color: #666;
+  font-style: italic;
+}
+
+/* Scrollbar personalizada para sugestões */
+.suggestions_container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.suggestions_container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.suggestions_container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.suggestions_container::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+  }
+  
+  .search_container {
+    margin: 0;
+    max-width: 100%;
+    width: 100%;
+  }
+  
+  .navbar ul {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+  }
+  
+  .navbar_logo h1 {
+    font-size: 1.2rem;
+  }
+  
+  .suggestions_container {
+    max-height: 250px;
+  }
+  
+  .suggestion_name {
+    font-size: 0.9rem;
+  }
+  
+  .suggestion_details {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar {
+    padding: 0.75rem;
+  }
+  
+  .navbar_logo {
+    gap: 0.5rem;
+  }
+  
+  .navbar_logo img {
+    height: 32px;
+  }
+  
+  .navbar_logo h1 {
+    font-size: 1rem;
+  }
+  
+  .search_input {
+    padding: 0.6rem 0.8rem;
+    font-size: 0.9rem;
+  }
+  
+  .search_button {
+    padding: 0.6rem 0.8rem;
+    font-size: 1rem;
+    min-width: 44px;
+  }
+  
+  .suggestion_item {
+    padding: 0.6rem 0.8rem;
+  }
+  
+  .suggestions_container {
+    max-height: 200px;
+  }
+}
+
+/* Animações */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.suggestions_container {
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Estados de loading */
+.search_button[disabled] {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* Melhorias de acessibilidade */
+.suggestion_item:focus {
+  outline: 2px solid #3498db;
+  outline-offset: -2px;
+  background-color: #f8f9fa;
+}
+
+.search_input:focus {
+  box-shadow: none; /* Removido pois já está no form */
+}
+
+/* Estados de hover mais suaves */
+.suggestion_item:hover .suggestion_name {
+  color: #1a252f;
+}
+
+.suggestion_item:hover .highlight {
+  background-color: #ffeaa7;
+  color: #6c5ce7;
+}
+
+/* Indicador visual para navegação por teclado */
+.suggestion_item:focus .suggestion_name {
+  color: #3498db;
+}
+
+/* Estilo para quando não há JavaScript */
+@media (prefers-reduced-motion: reduce) {
+  .suggestions_container {
+    animation: none;
+  }
+  
+  .search_button[disabled] {
+    animation: none;
+  }
+  
+  * {
+    transition: none !important;
+  }
+}
+
+/* Modo escuro (se necessário) */
+@media (prefers-color-scheme: dark) {
+  .suggestions_container {
+    background-color: #2c3e50;
+    border-color: #34495e;
+  }
+  
+  .suggestion_item {
+    border-bottom-color: #34495e;
+  }
+  
+  .suggestion_item:hover,
+  .suggestion_item:focus {
+    background-color: #34495e;
+  }
+  
+  .suggestion_name {
+    color: #ecf0f1;
+  }
+  
+  .suggestion_details {
+    color: #bdc3c7;
+  }
+  
+  .suggestion_see_all {
+    background-color: #34495e;
+    color: #3498db;
+  }
+  
+  .suggestion_see_all:hover,
+  .suggestion_see_all:focus {
+    background-color: #4a6741;
+  }
+  
+  .highlight {
+    background-color: #f39c12;
+    color: #2c3e50;
+  }
+}
