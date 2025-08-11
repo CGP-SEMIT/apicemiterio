@@ -22,7 +22,7 @@ module.exports = class SepultadoController {
         }
 
         // Extrai os campos do corpo da requisição
-        const {id, cemiterio, chapa, dtFal, dtNasc, idade, mae, nacionalidade, nome, pai, quadra, rua, image, epitafio,tipoSepultura } = req.body
+        const {id, cemiterio, chapa, dtFal, dtNasc, idade, mae, nacionalidade, nome, pai, quadra, rua, image, epitafio,tipoSepultura,latitude,longitude } = req.body
         const images = req.files?.images || [] // Verifica se há imagens enviadas no req.files
 
         const available = true // Define o sepultado como disponível por padrão
@@ -60,22 +60,7 @@ module.exports = class SepultadoController {
             res.status(422).json({ message: "Pai é um campo obrigatório!" })
             return
         }
-         if (cemiterio !== undefined) {
-             updatedData.cemiterio = cemiterio;
-         }
-          if (rua !== undefined) {
-             updatedData.rua = rua;
-         }
-
-         if (epitafio !== undefined) {
-             updatedData.epitafio = epitafio;
-         }
-          if (nacionalidade !== undefined) {
-             updatedData.nacionalidade = nacionalidade;
-         }
-          if (tipoSepultura !== undefined) {
-             updatedData.tipoSepultura = tipoSepultura;
-         }
+        
 
         // Recupera o usuário logado através do token
         const token = getToken(req)
@@ -94,8 +79,9 @@ module.exports = class SepultadoController {
             quadra,
             mae,
             pai,
-            historia,
             nacionalidade,
+            latitude,
+            longitude,
             rua,
             epitafio,
             available,
@@ -297,7 +283,7 @@ static async removeSepById(req, res) {
             console.log(id)
 
           // Extrai os campos do corpo da requisição
-        const { cemiterio, chapa, dtFal, dtNasc, idade, mae, nacionalidade, nome, pai, quadra, rua, image, historia, available, tipoSepultura, epitafio } = req.body
+        const { cemiterio, chapa, dtFal, dtNasc, idade, mae, nacionalidade, nome, pai, quadra, rua, image, available, tipoSepultura, epitafio } = req.body
        const images = req.files || [];
 
 
@@ -391,6 +377,12 @@ static async removeSepById(req, res) {
          }
           if (tipoSepultura !== undefined) {
              updatedData.tipoSepultura = tipoSepultura;
+         }
+         if(latitude !== undefined){
+            updatedData.latitude = latitude
+         }
+         if(longitude !== undefined){
+            updatedData.longitude = longitude
          }
        
        

@@ -52,6 +52,14 @@ const Sepultado = mongoose.model(
       type: Boolean,
     
     },
+    latitude: {
+      type: Number,
+      required: false
+    },
+    longitude: {
+      type: Number,
+     required: false
+    },
     quadra: {
       type: String,
       required: true

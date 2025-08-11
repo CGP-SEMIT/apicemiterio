@@ -1,42 +1,301 @@
- .sepultado_details_container{
-    text-align: center;
- }
- .sepultado_details_container p{
-    margin-bottom: 1em;
- }
+.sepultado_details_container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: #f8f9fa;
+  min-height: 100vh;
+}
+
 .sepultado_details_header {
-    margin-bottom: 2em;
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  color: white;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
-.sepultado_images{
-    display: flex;
-    justify-content:center;
-    margin-bottom: 1em;
-    max-width: 1000px;
-    margin: 0 auto;
-
+.sepultado_details_header h1 {
+  margin: 0;
+  font-size: 2.5rem;
+  font-weight: 300;
+  letter-spacing: 1px;
 }
 
-.sepultado_images img{
+.sepultado_images {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.sepultado_images img {
+  max-height: 250px;
+  max-width: 250px;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.sepultado_images img:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+/* Layout principal em duas colunas */
+.main_content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+/* Coluna da esquerda */
+.left_column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.info_section {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  border-left: 4px solid #667eea;
+}
+
+.info_section h3 {
+  margin: 0 0 1rem 0;
+  color: #2c3e50;
+  font-size: 1.3rem;
+  font-weight: 600;
+  border-bottom: 2px solid #ecf0f1;
+  padding-bottom: 0.5rem;
+}
+
+.info_grid {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.info_item {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.info_item:last-child {
+  border-bottom: none;
+}
+
+.label {
+  font-weight: 600;
+  color: #555;
+  font-size: 0.9rem;
+}
+
+.value {
+  color: #333;
+  font-size: 0.95rem;
+}
+
+/* Seção do epitáfio */
+.epitafio_section {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.epitafio_section h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.3rem;
+  font-weight: 300;
+}
+
+.epitafio_content p {
+  font-size: 1.1rem;
+  font-style: italic;
+  line-height: 1.6;
+  margin: 0;
+  opacity: 0.95;
+}
+
+/* Coluna da direita - Comentários */
+.right_column {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.comments_section {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.comments_section h3 {
+  margin: 0;
+  padding: 1.5rem;
+  background: #34495e;
+  color: white;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+/* Formulário de comentário */
+.comment_form {
+  padding: 1.5rem;
+  border-bottom: 1px solid #ecf0f1;
+}
+
+.comment_textarea {
+  width: 100%;
+  padding: 1rem;
+  border: 2px solid #e0e6ed;
+  border-radius: 8px;
+  resize: vertical;
+  font-family: inherit;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.comment_textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.submit_button {
+  margin-top: 1rem;
+  background: linear-gradient(135deg, #25b456 0%, #1c8a42 100%);
+  color: white;
+  border: none;
+  padding: 0.8rem 2rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+}
+
+.submit_button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(37, 180, 86, 0.3);
+}
+
+/* Lista de comentários */
+.comments_list {
+  flex: 1;
+  padding: 1rem;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.comment_item {
+  background: #f8f9fa;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  border-left: 3px solid #667eea;
+}
+
+.comment_header {
+  display: flex;
+  justify-content: between;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.comment_author {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.comment_date {
+  color: #7f8c8d;
+  margin-left: auto;
+}
+
+.comment_text {
+  margin: 0;
+  line-height: 1.5;
+  color: #444;
+}
+
+.loading, .no_comments {
+  text-align: center;
+  padding: 2rem;
+  color: #7f8c8d;
+}
+
+.no_comments p {
+  margin: 0;
+  font-style: italic;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .sepultado_details_container {
+    padding: 1rem;
+  }
+  
+  .main_content {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .sepultado_details_header h1 {
+    font-size: 2rem;
+  }
+  
+  .info_item {
+    grid-template-columns: 1fr;
+    gap: 0.3rem;
+  }
+  
+  .label {
+    font-weight: 700;
+    color: #667eea;
+  }
+  
+  .sepultado_images {
+    justify-content: center;
+  }
+  
+  .sepultado_images img {
     max-height: 200px;
-    margin-right: 1em;
-    margin-bottom: 1em;
-}
- .sepultado_details_container button{
-       text-decoration: none;
-    background-color:  #25b456;
-    color: #fff;
-    font-weight: bold;
-    cursor:pointer;
-    transition: 0.5s;
-    padding: 7px,15px;
-    border-radius: 5px;
-    border: none;
-   font-size: 1.1em;
-    margin-left: 1em;
     max-width: 200px;
-    min-height: 2.5em;
- }
-.sepultado_details_container button:hover{
- background-color: #1c8a42;
+  }
+}
+
+@media (max-width: 480px) {
+  .sepultado_details_container {
+    padding: 0.5rem;
+  }
+  
+  .sepultado_details_header {
+    padding: 1rem;
+  }
+  
+  .sepultado_details_header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .info_section, .comment_form {
+    padding: 1rem;
+  }
 }
