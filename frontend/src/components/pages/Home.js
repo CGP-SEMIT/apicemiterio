@@ -5,6 +5,7 @@ import styles from './Home.module.css'
  
 function Home(){
     const [seps, setSeps] = useState([])
+    const [expandedImage, setExpandedImage] = useState(null)
 
     useEffect(()=>{
         api.get('/sepultados').then((response) =>{
@@ -16,10 +17,18 @@ function Home(){
         })
     },[])
 
+    const handleImageClick = (imageUrl) => {
+        setExpandedImage(imageUrl)
+    }
+
+    const handleCloseModal = () => {
+        setExpandedImage(null)
+    }
+
     return(
         <section>
             <div className={styles.sepultado_home_header}>
-                <h2>Galeria dos Nomes</h2>
+              
                 <h5>Recentes</h5>
             </div>
             <div className={styles.sepultado_container}>
@@ -27,13 +36,12 @@ function Home(){
                     seps.map((sepultado, index) =>(
                         <div key={sepultado.id || index} className={styles.sepultado_card}>
                             
-                            <div  style={{backgroundImage:`url(${process.env.REACT_APP_API}/images/sepultados/${sepultado.images[0]})`}}
-                             className={styles.sepultado_card_image}>
-
+                            <div  
+                                style={{backgroundImage:`url(${process.env.REACT_APP_API}/images/sepultados/${sepultado.images[0]})`}}
+                                className={styles.sepultado_card_image}
+                                onClick={() => handleImageClick(`${process.env.REACT_APP_API}/images/sepultados/${sepultado.images[0]}`)}
+                            >
                             </div>
-
-
-
 
                             <h3>{sepultado.nome}</h3>
                          
@@ -48,7 +56,6 @@ function Home(){
                             <span className='bold'>Placa : </span>{sepultado.chapa || "Inform. desconhecida"}
                             </p>
 
-
                     <Link to={`sepultados/${sepultado._id}`}>Mais detalhes</Link>
                         </div>  
                     ))
@@ -57,6 +64,26 @@ function Home(){
                     <p>Não há sepultados cadastrados no momento</p>
                 )}
             </div>
+
+            {/* Modal para imagem expandida */}
+            {expandedImage && (
+                <div className={styles.image_modal} onClick={handleCloseModal}>
+                    <div className={styles.modal_content} onClick={(e) => e.stopPropagation()}>
+                        <img 
+                            src={expandedImage} 
+                            alt="Imagem expandida" 
+                            className={styles.expanded_image}
+                            onClick={handleCloseModal}
+                        />
+                        <button 
+                            className={styles.close_button}
+                            onClick={handleCloseModal}
+                        >
+                            ×
+                        </button>
+                    </div>
+                </div>
+            )}
         </section>
     )
 }

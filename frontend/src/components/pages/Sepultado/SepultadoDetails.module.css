@@ -42,6 +42,7 @@
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
 }
 
 .sepultado_images img:hover {
@@ -247,6 +248,63 @@
   font-style: italic;
 }
 
+/* Estilos para o modal de imagem expandida */
+.image_modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  cursor: pointer;
+}
+
+.modal_content {
+  position: relative;
+  max-width: 90%;
+  max-height: 90%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.expanded_image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  cursor: pointer;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.close_button {
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #333;
+  transition: all 0.3s ease;
+}
+
+.close_button:hover {
+  background: rgba(255, 255, 255, 1);
+  transform: scale(1.1);
+}
+
 /* Responsividade */
 @media (max-width: 768px) {
   .sepultado_details_container {
@@ -280,6 +338,20 @@
     max-height: 200px;
     max-width: 200px;
   }
+
+  /* Modal responsivo para tablets */
+  .modal_content {
+    max-width: 95%;
+    max-height: 95%;
+  }
+  
+  .close_button {
+    top: -30px;
+    right: -30px;
+    width: 35px;
+    height: 35px;
+    font-size: 20px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -297,5 +369,12 @@
   
   .info_section, .comment_form {
     padding: 1rem;
+  }
+
+  /* Modal responsivo para smartphones */
+  .close_button {
+    top: 10px;
+    right: 10px;
+    background: rgba(255, 255, 255, 0.8);
   }
 }

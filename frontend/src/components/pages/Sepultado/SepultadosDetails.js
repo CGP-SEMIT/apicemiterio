@@ -11,6 +11,7 @@ function SepultadoDetails() {
   const [comentarios, setComentarios] = useState([])
   const [novoComentario, setNovoComentario] = useState('')
   const [carregandoComentarios, setCarregandoComentarios] = useState(false)
+  const [expandedImage, setExpandedImage] = useState(null)
   const { id } = useParams()
   const { setFlashMessage } = useFlashMessage()
   const [token] = useState(localStorage.getItem('token') || '')
@@ -32,9 +33,14 @@ function SepultadoDetails() {
     setCarregandoComentarios(true)
     try {
       const response = await api.get(`/sepultados/${id}/comentarios`)
-      setComentarios(response.data || [])
+      // Garante que response.data seja um array, mesmo que a API retorne null ou undefined
+      setComentarios(Array.isArray(response.data) ? response.data : [])
     } catch (error) {
       console.error('Erro ao buscar comentários:', error)
+      // Em caso de erro, define comentarios como um array vazio para evitar que a aplicação quebre
+      setComentarios([])
+      // Opcional: exibir uma mensagem de erro para o usuário, se desejar
+      // setFlashMessage('Não foi possível carregar os comentários.', 'error')
     } finally {
       setCarregandoComentarios(false)
     }
@@ -62,6 +68,14 @@ function SepultadoDetails() {
     }
   }
 
+  const handleImageClick = (imageUrl) => {
+    setExpandedImage(imageUrl)
+  }
+
+  const handleCloseModal = () => {
+    setExpandedImage(null)
+  }
+
   const formatarData = (dataString) => {
     if (!dataString) return 'Desconhecida'
     try {
@@ -86,6 +100,7 @@ function SepultadoDetails() {
               src={`${process.env.REACT_APP_API}/images/sepultados/${image || 'default.jpg'}`}
               alt={sep.nome}
               key={index}
+              onClick={() => handleImageClick(`${process.env.REACT_APP_API}/images/sepultados/${image || 'default.jpg'}`)}
             />
           ))}
         </div>
@@ -208,8 +223,30 @@ function SepultadoDetails() {
           </div>
         </div>
       </div>
+
+      {/* Modal para imagem expandida */}
+      {expandedImage && (
+        <div className={styles.image_modal} onClick={handleCloseModal}>
+          <div className={styles.modal_content} onClick={(e) => e.stopPropagation()}>
+            <img 
+              src={expandedImage} 
+              alt="Imagem expandida" 
+              className={styles.expanded_image}
+              onClick={handleCloseModal}
+            />
+            <button 
+              className={styles.close_button}
+              onClick={handleCloseModal}
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
     </section>
   )
 }
 
 export default SepultadoDetails
+
+

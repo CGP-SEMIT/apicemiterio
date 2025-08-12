@@ -1,11 +1,11 @@
-// src/components/layout/Navbar.js - Versão final otimizada
+// src/components/layout/Navbar.js
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import Logo from '../../assets/img/logo-cemi.png';
 import styles from './Navbar.module.css'; 
 import { Context } from '../../context/UserContext'
 import { useContext } from 'react'
-import api from '../../utils/api'
+import api from '../../utils/api';
 
 function Navbar() {
   const { authenticated, logout } = useContext(Context)
@@ -13,45 +13,39 @@ function Navbar() {
   const [suggestions, setSuggestions] = useState([])
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [loading, setLoading] = useState(false)
-  const navigate = useNavigate()
   const searchRef = useRef(null)
-  const suggestionsRef = useRef(null)
-  const abortControllerRef = useRef(null)
+  const navigate = useNavigate()
+  const location = useLocation()
 
-  // Debounce otimizado para sugestões
+  // Rotas onde o filtro de pesquisa não deve aparecer
+  const hiddenSearchRoutes = ['/login', '/register', '/sepultados/add']
+  
+  // Verificar se a rota atual é uma rota de edição (contém /sepultados/edit/)
+  const isEditRoute = location.pathname.includes('/sepultados/edit/')
+  
+  // Determinar se deve mostrar o filtro de pesquisa
+  const shouldShowSearch = authenticated && !hiddenSearchRoutes.includes(location.pathname) && !isEditRoute
+
+  // Debounce para otimizar as requisições
   useEffect(() => {
-    // Cancelar requisição anterior se existir
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort()
-    }
+    if (!shouldShowSearch) return
 
     const timeoutId = setTimeout(() => {
       if (searchTerm.trim().length >= 2) {
-        fetchSuggestions(searchTerm.trim())
+        fetchSuggestions(searchTerm)
       } else {
         setSuggestions([])
         setShowSuggestions(false)
-        setLoading(false)
       }
     }, 300)
 
-    return () => {
-      clearTimeout(timeoutId)
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort()
-      }
-    }
-  }, [searchTerm])
+    return () => clearTimeout(timeoutId)
+  }, [searchTerm, shouldShowSearch])
 
   // Fechar sugestões ao clicar fora
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (
-        searchRef.current && 
-        !searchRef.current.contains(event.target) &&
-        suggestionsRef.current &&
-        !suggestionsRef.current.contains(event.target)
-      ) {
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
         setShowSuggestions(false)
       }
     }
@@ -62,51 +56,13 @@ function Navbar() {
 
   const fetchSuggestions = async (term) => {
     setLoading(true)
-    
-    // Criar novo AbortController para esta requisição
-    abortControllerRef.current = new AbortController()
-    
     try {
-      // Tentar usar endpoint otimizado de sugestões primeiro
-      let response
-      try {
-        response = await api.get(`/sepultados/sugestoes?q=${encodeURIComponent(term)}`, {
-          signal: abortControllerRef.current.signal
-        })
-        setSuggestions(response.data.suggestions || [])
-      } catch (error) {
-        if (error.name === 'AbortError') return
-        
-        // Fallback para endpoint de pesquisa geral
-        try {
-          response = await api.get(`/sepultados/pesquisa?q=${encodeURIComponent(term)}&suggestions=true`, {
-            signal: abortControllerRef.current.signal
-          })
-          setSuggestions(response.data.sepultado?.slice(0, 5) || [])
-        } catch (fallbackError) {
-          if (fallbackError.name === 'AbortError') return
-          
-          // Último fallback: buscar todos e filtrar no frontend
-          response = await api.get('/sepultados', {
-            signal: abortControllerRef.current.signal
-          })
-          const allSepultados = response.data.sepultado || []
-          const filtered = allSepultados.filter(sepultado => 
-            sepultado.nome.toLowerCase().includes(term.toLowerCase()) ||
-            (sepultado.rua && sepultado.rua.toLowerCase().includes(term.toLowerCase())) ||
-            (sepultado.quadra && sepultado.quadra.toLowerCase().includes(term.toLowerCase())) ||
-            (sepultado.chapa && sepultado.chapa.toLowerCase().includes(term.toLowerCase()))
-          ).slice(0, 5)
-          setSuggestions(filtered)
-        }
-      }
-      
+      const response = await api.get(`/sepultados/pesquisa?q=${encodeURIComponent(term)}&suggestions=true`)
+      setSuggestions(response.data.sepultado || [])
       setShowSuggestions(true)
     } catch (error) {
-      if (error.name !== 'AbortError') {
-        console.error('Erro ao buscar sugestões:', error)
-        setSuggestions([])
-      }
+      console.error('Erro ao buscar sugestões:', error)
+      setSuggestions([])
     } finally {
       setLoading(false)
     }
@@ -116,13 +72,8 @@ function Navbar() {
     e.preventDefault()
     if (searchTerm.trim()) {
       navigate(`/sepultados/pesquisa?q=${encodeURIComponent(searchTerm.trim())}`)
-      setSearchTerm('')
       setShowSuggestions(false)
     }
-  }
-
-  const handleSearchInputChange = (e) => {
-    setSearchTerm(e.target.value)
   }
 
   const handleSuggestionClick = (sepultado) => {
@@ -131,38 +82,14 @@ function Navbar() {
     setShowSuggestions(false)
   }
 
-  const handleInputFocus = () => {
-    if (suggestions.length > 0 && searchTerm.trim().length >= 2) {
-      setShowSuggestions(true)
-    }
-  }
-
   const handleKeyDown = (e) => {
     if (e.key === 'Escape') {
       setShowSuggestions(false)
     }
-    // Adicionar navegação por teclado nas sugestões
-    if (e.key === 'ArrowDown' && showSuggestions && suggestions.length > 0) {
-      e.preventDefault()
-      // Focar no primeiro item da lista
-      const firstSuggestion = suggestionsRef.current?.querySelector('.suggestion_item')
-      if (firstSuggestion) {
-        firstSuggestion.focus()
-      }
-    }
   }
 
-  const highlightMatch = (text, searchTerm) => {
-    if (!text || !searchTerm) return text
-    
-    const regex = new RegExp(`(${searchTerm})`, 'gi')
-    const parts = text.split(regex)
-    
-    return parts.map((part, index) => 
-      regex.test(part) ? 
-        <mark key={index} className={styles.highlight}>{part}</mark> : 
-        part
-    )
+  const handleSearchInputChange = (e) => {
+    setSearchTerm(e.target.value)
   }
 
   return (
@@ -172,89 +99,72 @@ function Navbar() {
         <h1>Cemitério Santa Faustina</h1>
       </div>
 
-      {/* Campo de pesquisa dinâmica */}
-      <div className={styles.search_container} ref={searchRef}>
-        <form onSubmit={handleSearch} className={styles.search_form}>
-          <input
-            type="text"
-            placeholder="Pesquisar sepultados..."
-            value={searchTerm}
-            onChange={handleSearchInputChange}
-            onFocus={handleInputFocus}
-            onKeyDown={handleKeyDown}
-            className={styles.search_input}
-            autoComplete="off"
-          />
-          <button 
-            type="submit" 
-            className={styles.search_button}
-            disabled={!searchTerm.trim()}
-            title="Pesquisar"
-          >
-            {loading ? '⏳' : '🔍'}
-          </button>
-        </form>
+      {/* Campo de pesquisa - só aparece se shouldShowSearch for true */}
+      {shouldShowSearch && (
+        <div className={styles.search_container} ref={searchRef}>
+          <form onSubmit={handleSearch} className={styles.search_form}>
+            <input
+              type="text"
+              placeholder="Pesquisar sepultados..."
+              value={searchTerm}
+              onChange={handleSearchInputChange}
+              onKeyDown={handleKeyDown}
+              className={styles.search_input}
+            />
+            <button 
+              type="submit" 
+              className={styles.search_button}
+              disabled={!searchTerm.trim()}
+            >
+              🔍
+            </button>
+          </form>
 
-        {/* Sugestões dinâmicas */}
-        {showSuggestions && (
-          <div className={styles.suggestions_container} ref={suggestionsRef}>
-            {suggestions.length > 0 ? (
-              <>
-                {suggestions.map((sepultado, index) => (
-                  <div
-                    key={sepultado._id || index}
-                    className={`${styles.suggestion_item} suggestion_item`}
-                    onClick={() => handleSuggestionClick(sepultado)}
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        handleSuggestionClick(sepultado)
-                      }
-                    }}
-                  >
-                    <div className={styles.suggestion_content}>
-                      <div className={styles.suggestion_name}>
-                        {highlightMatch(sepultado.nome, searchTerm)}
-                      </div>
-                      <div className={styles.suggestion_details}>
-                        {sepultado.rua && (
-                          <>Rua: {highlightMatch(sepultado.rua, searchTerm)}</>
-                        )}
-                        {sepultado.quadra && (
-                          <> • Quadra: {highlightMatch(sepultado.quadra, searchTerm)}</>
-                        )}
-                        {sepultado.chapa && (
-                          <> • Placa: {highlightMatch(sepultado.chapa, searchTerm)}</>
-                        )}
+          {/* Dropdown de sugestões */}
+          {showSuggestions && (
+            <div className={styles.suggestions_dropdown}>
+              {loading && (
+                <div className={styles.suggestion_item}>
+                  <span>Pesquisando...</span>
+                </div>
+              )}
+              
+              {!loading && suggestions.length > 0 && (
+                <>
+                  {suggestions.map((sepultado, index) => (
+                    <div
+                      key={sepultado._id || index}
+                      className={styles.suggestion_item}
+                      onClick={() => handleSuggestionClick(sepultado)}
+                    >
+                      <div className={styles.suggestion_content}>
+                        <strong>{sepultado.nome}</strong>
+                        {sepultado.rua && <span> - {sepultado.rua}</span>}
+                        {sepultado.quadra && <span>, Quadra {sepultado.quadra}</span>}
                       </div>
                     </div>
-                  </div>
-                ))}
-                {searchTerm.trim() && (
-                  <div 
-                    className={styles.suggestion_see_all}
-                    onClick={() => handleSearch({ preventDefault: () => {} })}
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        handleSearch({ preventDefault: () => {} })
-                      }
-                    }}
-                  >
-                    Ver todos os resultados para "{searchTerm}"
-                  </div>
-                )}
-              </>
-            ) : (
-              searchTerm.trim().length >= 2 && !loading && (
-                <div className={styles.suggestion_no_results}>
-                  Nenhum resultado encontrado
+                  ))}
+                  
+                  {searchTerm.trim() && (
+                    <div 
+                      className={styles.suggestion_item_all}
+                      onClick={handleSearch}
+                    >
+                      Ver todos os resultados para "{searchTerm}"
+                    </div>
+                  )}
+                </>
+              )}
+              
+              {!loading && suggestions.length === 0 && searchTerm.trim().length >= 2 && (
+                <div className={styles.suggestion_item}>
+                  <span>Nenhuma sugestão encontrada</span>
                 </div>
-              )
-            )}
-          </div>
-        )}
-      </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       <ul>
         <li>
