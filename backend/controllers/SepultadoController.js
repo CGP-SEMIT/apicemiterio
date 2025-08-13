@@ -487,133 +487,112 @@ module.exports = class SepultadoController {
         }
     }
 
-    // Método otimizado para pesquisa dinâmica com sugestões - CORRIGIDO
-    static async searchSepultados(req, res) {
-        const { q, limit = 10, suggestions = false } = req.query
+// Substitua o método searchSepultados por esta versão final e correta.
 
-        if (!q || q.trim() === "") {
-            res.status(400).json({ message: "Termo de pesquisa é obrigatório!" })
-            return
-        }
+static async searchSepultados(req, res) {
+    const { q, limit = 50 } = req.query;
 
-        try {
-            const searchTerm = removeAccents(q.trim());
-            const originalTerm = q.trim(); // Manter termo original também
-            
-            // Para sugestões, limitamos a 5 resultados. Para pesquisa completa, usar o limit
-            const limitNum = suggestions === "true" ? 5 : parseInt(limit);
-            
-            // Definir a projeção para os campos que você precisa retornar
-            const projection = {
-                nome: 1,
-                rua: 1,
-                quadra: 1,
-                chapa: 1,
-                images: { $slice: 1 }, // Apenas a primeira imagem
-                dtFal: 1,
-                dtNasc: 1,
-                idade: 1,
-                mae: 1,
-                pai: 1,
-                cemiterio: 1,
-                epitafio: 1
-            }
+    if (!q || q.trim() === "") {
+        return res.status(400).json({ message: "O termo de pesquisa é obrigatório!" });
+    }
 
-            // Construir a query de busca - MELHORADA para capturar acentos
-            const searchQuery = {
-                $or: [
-                    // Busca com termo original (com acentos)
-                    { nome: { $regex: originalTerm, $options: "i" } },
-                    { rua: { $regex: originalTerm, $options: "i" } },
-                    { quadra: { $regex: originalTerm, $options: "i" } },
-                    { chapa: { $regex: originalTerm, $options: "i" } },
-                    { mae: { $regex: originalTerm, $options: "i" } },
-                    { pai: { $regex: originalTerm, $options: "i" } },
-                    
-                    // Busca com termo sem acentos
-                    { nome: { $regex: searchTerm, $options: "i" } },
-                    { rua: { $regex: searchTerm, $options: "i" } },
-                    { quadra: { $regex: searchTerm, $options: "i" } },
-                    { chapa: { $regex: searchTerm, $options: "i" } },
-                    { mae: { $regex: searchTerm, $options: "i" } },
-                    { pai: { $regex: searchTerm, $options: "i" } }
-                ]
-            }
+    try {
+        const originalTerm = q.trim();
+        const limitNum = parseInt(limit, 10);
 
-            let query = Sepultado.find(searchQuery, projection)
-                .sort({ nome: 1 })
-            
-            // Aplicar limite se especificado
-            if (limitNum > 0) {
-                query = query.limit(limitNum)
-            }
+        // 1. DIVIDIR O TERMO DE BUSCA EM PALAVRAS-CHAVE
+        //    Ex: "jose dos" -> ["jose", "dos"]
+        //    Ex: "jose" -> ["jose"]
+        const searchWords = originalTerm.split(' ').filter(word => word.length > 0);
 
-            const sepultados = await query.exec();
+        // 2. CONSTRUIR A QUERY DE BUSCA PRINCIPAL
+        //    Usamos $and para garantir que o documento contenha TODAS as palavras pesquisadas.
+        const matchQuery = {
+            $and: searchWords.map(word => {
+                // Para cada palavra, criamos uma regex para buscar a versão normalizada (sem acento)
+                const normalizedWord = removeAccents(word);
+                const regex = new RegExp(normalizedWord, 'i');
+                
+                // E verificamos se essa palavra existe em QUALQUER um dos campos relevantes ($or)
+                return {
+                    $or: [
+                        { nome: regex },
+                        { rua: regex },
+                        { quadra: regex },
+                        { chapa: regex }
+                    ]
+                };
+            })
+        };
 
-            // Para sugestões, adicionar score de relevância
-            if (suggestions === "true") {
-                const scoredResults = sepultados.map(sep => {
-                    let score = 0
-                    const lowerSearchTerm = searchTerm
-                    const lowerOriginalTerm = originalTerm.toLowerCase()
-                    const lowerNome = removeAccents(sep.nome)
-                    const originalNome = sep.nome.toLowerCase()
-                    
-                    // Score mais alto para matches exatos no início
-                    if (originalNome.startsWith(lowerOriginalTerm) || lowerNome.startsWith(lowerSearchTerm)) {
-                        score += 15
-                    } else if (originalNome.includes(lowerOriginalTerm) || lowerNome.includes(lowerSearchTerm)) {
-                        score += 10
-                    }
-                    
-                    // Score adicional para matches em outros campos
-                    const fieldsToCheck = ['rua', 'quadra', 'chapa', 'mae', 'pai'];
-                    fieldsToCheck.forEach(field => {
-                        if (sep[field]) {
-                            const fieldValue = sep[field].toLowerCase();
-                            const fieldValueNoAccent = removeAccents(sep[field]);
-                            if (fieldValue.includes(lowerOriginalTerm) || fieldValueNoAccent.includes(lowerSearchTerm)) {
-                                score += 3;
+        // Expressão regular para verificar se o nome COMEÇA com o termo completo.
+        const startsWithRegex = new RegExp(`^${originalTerm}`, "i");
+
+        const pipeline = [
+            // ETAPA 1: $match - Filtra documentos que correspondem a TODAS as palavras-chave.
+            {
+                $match: matchQuery
+            },
+            // ETAPA 2: $addFields - Adiciona o campo 'score' para relevância.
+            {
+                $addFields: {
+                    score: {
+                        $cond: {
+                            if: { $regexMatch: { input: "$nome", regex: startsWithRegex } },
+                            then: 15, // Pontuação MÁXIMA se o nome começa com o termo
+                            else: {
+                                $cond: {
+                                    // Usamos uma regex simples para ver se o nome contém a frase inteira
+                                    if: { $regexMatch: { input: "$nome", regex: new RegExp(removeAccents(originalTerm), 'i') } },
+                                    then: 10, // Pontuação MÉDIA se o nome contém o termo
+                                    else: 5 // Pontuação MÍNIMA para outros campos
+                                }
                             }
                         }
-                    });
-                    
-                    return { ...sep.toObject(), _score: score }
-                })
-                
-                // Remover duplicatas baseado no _id
-                const uniqueResults = scoredResults.filter((item, index, self) => 
-                    index === self.findIndex(t => t._id.toString() === item._id.toString())
-                );
-                
-                // Ordenar por score
-                uniqueResults.sort((a, b) => b._score - a._score)
-                
-                res.status(200).json({
-                    sepultado: uniqueResults,
-                    total: uniqueResults.length,
-                    searchTerm: originalTerm,
-                    suggestions: true
-                })
-            } else {
-                // Remover duplicatas para pesquisa normal também
-                const uniqueResults = sepultados.filter((item, index, self) => 
-                    index === self.findIndex(t => t._id.toString() === item._id.toString())
-                );
-                
-                res.status(200).json({
-                    sepultado: uniqueResults,
-                    total: uniqueResults.length,
-                    searchTerm: originalTerm,
-                    suggestions: false
-                })
+                    }
+                }
+            },
+            // ETAPA 3: $sort - Ordena pela pontuação e depois pelo nome.
+            {
+                $sort: {
+                    score: -1,
+                    nome: 1
+                }
+            },
+            // ETAPA 4: $limit - Restringe o número de resultados.
+            {
+                $limit: limitNum
+            },
+            // ETAPA 5: $project - Seleciona os campos a serem retornados.
+            {
+                $project: {
+                    _id: 1,
+                    nome: 1,
+                    rua: 1,
+                    quadra: 1,
+                    chapa: 1,
+                    images: { $slice: ["$images", 1] },
+                }
             }
+        ];
 
-        } catch (error) {
-            console.error("Erro na pesquisa:", error)
-            res.status(500).json({ message: "Erro interno do servidor" })
-        }
+        const sepultados = await Sepultado.aggregate(pipeline);
+
+        res.status(200).json({
+            sepultado: sepultados,
+            total: sepultados.length,
+            searchTerm: originalTerm
+        });
+
+    } catch (error) {
+        console.error("Erro na pesquisa:", error);
+        res.status(500).json({ message: "Erro interno do servidor ao realizar a pesquisa." });
     }
+}
+
+
+
+
 
     // Método para busca rápida de sugestões - CORRIGIDO
     static async getSuggestions(req, res) {

@@ -25,56 +25,84 @@ function SearchResults() {
     }
   }, [searchTerm]);
 
-  const performSearch = async (term) => {
+
+
+
+
+
+
+
+
+  // Em src/components/pages/SearchResults.js
+
+const performSearch = async (term) => {
     if (!term || term.trim() === '') {
-      setSearchResults([]);
-      setTotalResults(0);
-      return;
+        setSearchResults([]);
+        setTotalResults(0);
+        return;
     }
 
     setLoading(true);
     setError('');
     
     try {
-      const response = await api.get('/sepultados/search?q=' + encodeURIComponent(term.trim()) + '&limit=50');
-      
-      if (response.data && Array.isArray(response.data.sepultado)) {
-        setSearchResults(response.data.sepultado);
-        setTotalResults(response.data.total || response.data.sepultado.length);
-      } else {
-        console.warn('Formato de resposta inesperado:', response.data);
+        const response = await api.get('/sepultados/pesquisa?q=' + encodeURIComponent(term.trim()) + '&limit=50');
+        
+        // A resposta da API sempre será um sucesso (200) se a busca for executada.
+        // Verificamos se os dados esperados estão presentes.
+        if (response.data && Array.isArray(response.data.sepultado)) {
+            setSearchResults(response.data.sepultado);
+            setTotalResults(response.data.total); // Confia no total vindo da API
+
+            // Se o array estiver vazio, o próprio componente já renderiza a mensagem "Nenhum resultado encontrado".
+            // Não precisamos setar um erro para isso.
+            if (response.data.sepultado.length === 0) {
+                console.log('A busca foi bem-sucedida, mas não retornou resultados.');
+            }
+
+        } else {
+            // Isso acontece se a API retornar um formato inesperado (não deveria acontecer).
+            console.warn('Formato de resposta inesperado:', response.data);
+            setError('Ocorreu um erro ao processar a resposta do servidor.');
+            setSearchResults([]);
+            setTotalResults(0);
+        }
+    } catch (error) {
+        // O bloco CATCH agora só trata erros REAIS (falha de rede, erro 500, etc.)
+        console.error('Erro na chamada da API:', error);
+        
+        if (error.response) {
+            // Erros que vêm do servidor (ex: 500 - Internal Server Error)
+            setError('Erro interno do servidor. Tente novamente em alguns minutos.');
+        } else if (error.request) {
+            // Erro de rede (sem conexão)
+            setError('Sem conexão com o servidor. Verifique sua internet.');
+        } else {
+            // Outro tipo de erro inesperado
+            setError('Ocorreu um erro inesperado ao realizar a pesquisa.');
+        }
+        
         setSearchResults([]);
         setTotalResults(0);
-      }
-    } catch (error) {
-      console.error('Erro na pesquisa:', error);
-      
-      if (error.response) {
-        switch (error.response.status) {
-          case 400:
-            setError('Termo de pesquisa inválido. Por favor, digite algo para pesquisar.');
-            break;
-          case 404:
-            setError('Nenhum resultado encontrado.');
-            break;
-          case 500:
-            setError('Erro interno do servidor. Tente novamente em alguns minutos.');
-            break;
-          default:
-            setError('Erro ao realizar a pesquisa. Tente novamente.');
-        }
-      } else if (error.request) {
-        setError('Sem conexão com o servidor. Verifique sua internet.');
-      } else {
-        setError('Erro inesperado. Tente novamente.');
-      }
-      
-      setSearchResults([]);
-      setTotalResults(0);
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   const getImageUrl = (sepultado) => {
     if (sepultado.images && sepultado.images.length > 0 && sepultado.images[0]) {
